@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lab Kimia Interaktif - Drag & Drop</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460); 
+            color: white; 
+            min-height: 100vh;
+        }
+
+        /* Header */
+        header { 
+            background: linear-gradient(90deg, #e94560, #0f3460); 
+            padding: 25px; 
+            text-align: center;
+            box-shadow: 0 4px 20px rgba(233, 69, 96, 0.3);
+        }
+        header h1 { font-size: 2rem; margin-bottom: 8px; }
+        header p { color: #ccc; }
+
+        .container { max-width: 1100px; margin: 0 auto; padding: 20px; }
+
+        /* Section Title */
+        .section-title { 
+            text-align: center; 
+            margin: 30px 0 20px; 
+            font-size: 1.4rem;
+            color: #ffd700;
+        }
+        .section-title i { margin-right: 10px; }
+
+        /* Compounds Container */
+        .compounds-box {
+            background: rgba(255,255,255,0.05);
+            border-radius: 20px;
+            padding: 20px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .compounds-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        /* Compound Card - Draggable */
+        .compound-card {
+            width: 110px;
+            height: 110px;
+            background: linear-gradient(145deg, #1e3a5f, #0d2137);
+            border-radius: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: grab;
+            transition: all 0.3s ease;
+            border: 2px solid rgba(255,255,255,0.1);
+            user-select: none;
+        }
+        .compound-card:hover {
+            transform: scale(1.08) rotate(2deg);
+            border-color: #ffd700;
+            box-shadow: 0 8px 25px rgba(255, 215, 0, 0.4);
+        }
+        .compound-card:active { cursor: grabbing; }
+        .compound-card.dragging { opacity: 0.5; transform: scale(0.9); }
+        .compound-card.selected {
+            border-color: #00d9ff;
+            box-shadow: 0 0 20px rgba(0, 217, 255, 0.5);
+        }
+        .compound-icon { font-size: 2.5rem; margin-bottom: 5px; }
+        .compound-name { font-size: 0.85rem; font-weight: bold; }
+        .compound-formula { font-size: 0.8rem; color: #00d9ff; }
+
+        /* DROP ZONES - Kotak Kuning */
+        .drop-zones-container {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin: 30px 0;
+            flex-wrap: wrap;
+        }
+        .drop-zone {
+            width: 150px;
+            height: 150px;
+            background: linear-gradient(145deg, #ffd700, #ffaa00);
+            border: 4px dashed #fff;
+            border-radius: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            position: relative;
+            box-shadow: 0 5px 20px rgba(255, 215, 0, 0.3);
+        }
+        .drop-zone::before {
+            content: 'Drop di sini';
+            color: #333;
+            font-weight: bold;
+            font-size: 0.95rem;
+        }
+        .drop-zone.drag-over {
+            transform: scale(1.08);
+            box-shadow: 0 0 35px rgba(255, 215, 0, 0.6);
+            border-color: #fff;
+        }
+        .drop-zone.filled {
+            border-style: solid;
+            border-color: #fff;
+            background: linear-gradient(145deg, #2ed573, #26af61);
+        }
+        .drop-zone.filled::before { content: ''; }
+        
+        /* Senyawa di dalam drop zone */
+        .drop-zone .compound-card {
+            width: 95%;
+            height: 95%;
+            background: transparent;
+            border: none;
+            box-shadow: none;
+        }
+        .drop-zone .compound-card:hover { transform: none; }
+        
+        /* Hapus button */
+        .remove-btn {
+            position: absolute;
+            top: -12px;
+            right: -12px;
+            background: #ff4757;
+            color: white;
+            border: none;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 0.9rem;
+            display: none;
+            z-index: 10;
+            font-weight: bold;
+        }
+        .drop-zone.filled .remove-btn { 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+        }
+
+        /* Animation Area */
+        .animation-area { 
+            background: linear-gradient(145deg, #0a0a15, #1a1a2e); 
+            border-radius: 20px; 
+            padding: 30px; 
+            min-height: 250px; 
+            text-align: center;
+            border: 2px solid rgba(233, 69, 96, 0.3);
+            margin: 20px 0;
+        }
+        .animation-title { 
+            color: #00d9ff; 
+            margin-bottom: 25px; 
+            font-size: 1.2rem;
+        }
+
+        /* Atom Display */
+        .atom-display {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            min-height: 100px;
+        }
+        
+        .atom {
+            width: 55px;
+            height: 55px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.1rem;
+            position: relative;
+            animation: atomFloat 1.5s ease-in-out infinite;
+            box-shadow: 0 0 15px currentColor;
+        }
+        
+        /* Atom Colors */
+        .atom-H { background: #fff; color: #333; }
+        .atom-O { background: #ff4757; color: #fff; }
+        .atom-Na { background: #ffa502; color: #333; }
+        .atom-Cl { background: #2ed573; color: #fff; }
+        .atom-C { background: #747d8c; color: #fff; }
+        .atom-N { background: #3742fa; color: #fff; }
+        
+        @keyframes atomFloat {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-12px) rotate(5deg); }
+        }
+
+        .bond {
+            width: 30px;
+            height: 5px;
+            background: linear-gradient(90deg, #e94560, #00d9ff);
+            border-radius: 3px;
+        }
+
+        /* Combine Button */
+        .combine-section { text-align: center; margin: 25px 0; }
+        .btn-combine {
+            background: linear-gradient(135deg, #e94560, #ff6b6b);
+            color: white;
+            border: none;
+            padding: 15px 50px;
+            font-size: 1.2rem;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+            box-shadow: 0 5px 20px rgba(233, 69, 96, 0.4);
+        }
+        .btn-combine:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(233, 69, 96, 0.6);
+        }
+        .btn-combine:disabled {
+            background: #555;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        .btn-reset {
+            background: linear-gradient(135deg, #57606f, #2f3542);
+            color: white;
+            border: none;
+            padding: 10px 25px;
+            border-radius: 20px;
+            cursor: pointer;
+            margin-left: 10px;
+            transition: all 0.3s;
+        }
+        .btn-reset:hover { transform: scale(1.05); }
+
+        /* Reaction Result */
+        .reaction-result { 
+            display: none;
+            margin-top: 25px; 
+            padding: 25px; 
+            background: linear-gradient(145deg, #1a472a, #0d2818); 
+            border-radius: 15px; 
+            border: 2px solid #2ed573;
+            text-align: center;
+            animation: resultPop 0.6s ease-out;
+        }
+        @keyframes resultPop {
+            0% { opacity: 0; transform: scale(0.5); }
+            70% { transform: scale(1.08); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+        .reaction-title { 
+            color: #2ed573; 
+            font-size: 1.4rem; 
+            margin-bottom: 15px;
+        }
+        .reaction-equation {
+            font-size: 1.3rem;
+            color: #fff;
+            font-family: 'Courier New', monospace;
+            margin: 12px 0;
+        }
+        .reaction-arrow {
+            display: inline-block;
+            color: #ffd700;
+            font-size: 1.6rem;
+            margin: 0 15px;
+            animation: arrowBounce 0.6s ease-in-out infinite;
+        }
+        @keyframes arrowBounce {
+            0%, 100% { transform: translateX(0); }
+            50% { transform: translateX(8px); }
+        }
+
+        /* Info Panel */
+        .info-panel { 
+            background: rgba(255,255,255,0.05); 
+            border-radius: 15px; 
+            padding: 20px; 
+            margin-top: 25px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .info-title { color: #ffd700; margin-bottom: 10px; }
+        .info-content { color: #ccc; line-height: 1.6; }
+
+        /* Instructions */
+        .instructions {
+            background: rgba(255, 215, 0, 0.1);
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            border-radius: 12px;
+            padding: 15px;
+            text-align: center;
+            margin-bottom: 20px;
+            color: #ffd700;
+        }
+
+        /* Mobile */
+        @media (max-width: 600px) { 
+            .compound-card { width: 90px; height: 90px; }
+            .drop-zone { width: 130px; height: 130px; }
+            .atom { width: 45px; height: 45px; font-size: 0.9rem; }
+            header h1 { font-size: 1.5rem; }
+        }
+		/* NAVBAR */
+nav{
+    background: linear-gradient(90deg, #1B263B, #0F3460);
+    padding:15px;
+    text-align:center;
+}
+
+nav a{
+    color:#FFD700;
+    margin:0 18px;
+    text-decoration:none;
+    font-weight:bold;
+    position:relative;
+    transition:0.3s;
+}
+
+/* Hover effect */
+nav a::after{
+    content:"";
+    position:absolute;
+    width:0%;
+    height:3px;
+    background:#FFD700;
+    left:0;
+    bottom:-5px;
+    transition:0.3s;
+}
+
+nav a:hover{
+    color:white;
+}
+
+nav a:hover::after{
+    width:100%;
+}
+    </style>
+</head>
+<body>
+    <header>
+        <h1><i class="fas fa-flask"></i> Lab Kimia Interaktif</h1>
+        <p>Seret senyawa ke kotak kuning, lalu gabungkan untuk simulasi reaksi!</p>
+    </header>
+<nav>
+    <a href="Beranda.html">Beranda</a>
+    <a href="Jenis.html">Jenis</a>
+    <a href="sifat.html">Sifat</a>
+    <a href="njajalrek.html">Contoh</a>  
+    <a href="quiz.html">Quiz</a>
+</nav>
+    <div class="container">
+        
+        <!-- Bagian 1: Senyawa Kimia (Draggable) -->
+        <h2 class="section-title"><i class="fas fa-molecule"></i> Senyawa Kimia</h2>
+        
+        <div class="instructions">
+            <i class="fas fa-hand-pointer"></i> Klik & Seret senyawa ke kotak kuning di bawah!
+        </div>
+
+        <div class="compounds-box">
+            <div class="compounds-row" id="compoundsRow">
+                <!-- H2O -->
+                <div class="compound-card" draggable="true" data-id="H2O" data-name="Air" data-formula="H₂O" ondragstart="dragStart(event)">
+                    <div class="compound-icon">💧</div>
+                    <div class="compound-name">Air</div>
+                    <div class="compound-formula">H₂O</div>
+                </div>
+
+                <!-- NaCl -->
+                <div class="compound-card" draggable="true" data-id="NaCl" data-name="Garam" data-formula="NaCl" ondragstart="dragStart(event)">
+                    <div class="compound-icon">🧂</div>
+                    <div class="compound-name">Garam</div>
+                    <div class="compound-formula">NaCl</div>
+                </div>
+
+                <!-- CO2 -->
+                <div class="compound-card" draggable="true" data-id="CO2" data-name="CO₂" data-formula="CO₂" ondragstart="dragStart(event)">
+                    <div class="compound-icon">💨</div>
+                    <div class="compound-name">CO₂</div>
+                    <div class="compound-formula">CO₂</div>
+                </div>
+
+                <!-- H2 -->
+                <div class="compound-card" draggable="true" data-id="H2" data-name="Hidrogen" data-formula="H₂" ondragstart="dragStart(event)">
+                    <div class="compound-icon">⚡</div>
+                    <div class="compound-name">Hidrogen</div>
+                    <div class="compound-formula">H₂</div>
+                </div>
+
+                <!-- O2 -->
+                <div class="compound-card" draggable="true" data-id="O2" data-name="Oksigen" data-formula="O₂" ondragstart="dragStart(event)">
+                    <div class="compound-icon">🌬️</div>
+                    <div class="compound-name">Oksigen</div>
+                    <div class="compound-formula">O₂</div>
+                </div>
+
+                <!-- NaOH -->
+                <div class="compound-card" draggable="true" data-id="NaOH" data-name="Soda Api" data-formula="NaOH" ondragstart="dragStart(event)">
+                    <div class="compound-icon">🧴</div>
+                    <div class="compound-name">Soda Api</div>
+                    <div class="compound-formula">NaOH</div>
+                </div>
+
+                <!-- HCl -->
+                <div class="compound-card" draggable="true" data-id="HCl" data-name="Asam Klorida" data-formula="HCl" ondragstart="dragStart(event)">
+                    <div class="compound-icon">🧪</div>
+                    <div class="compound-name">Asam Klorida</div>
+                    <div class="compound-formula">HCl</div>
+                </div>
+
+                <!-- NH3 -->
+                <div class="compound-card" draggable="true" data-id="NH3" data-name="Amonia" data-formula="NH₃" ondragstart="dragStart(event)">
+                    <div class="compound-icon">💨</div>
+                    <div class="compound-name">Amonia</div>
+                    <div class="compound-formula">NH₃</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bagian 2: Drop Zones (Kotak Kuning) -->
+        <h2 class="section-title"><i class="fas fa-box"></i> Kotak Reaksi</h2>
+        <div class="drop-zones-container">
+            <div class="drop-zone" id="dropZone1" data-slot="1" ondrop="drop(event)" ondragover="allowDrop(event)" onclick="showCompoundInfo(this)">
+                <button class="remove-btn" onclick="removeFromZone(1, event)">✕</button>
+            </div>
+            <div class="drop-zone" id="dropZone2" data-slot="2" ondrop="drop(event)" ondragover="allowDrop(event)" onclick="showCompoundInfo(this)">
+                <button class="remove-btn" onclick="removeFromZone(2, event)">✕</button>
+            </div>
+        </div>
+
+        <!-- Bagian 3: Button Gabung -->
+        <div class="combine-section">
+            <button class="btn-combine" id="btnGabung" onclick="combineCompounds()" disabled>
+                <i class="fas fa-flask"></i> Gabungkan!
+            </button>
+            <button class="btn-reset" onclick="resetAll()">
+                <i class="fas fa-redo"></i> Reset
+            </button>
+        </div>
+
+        <!-- Bagian 4: Animasi Senyawa Dipilih -->
+        <h2 class="section-title"><i class="fas fa-atom"></i> Animasi Struktur</h2>
+        <div class="animation-area">
+            <h3 class="animation-title" id="animTitle">Klik senyawa untuk lihat animasi struktur atom!</h3>
+            <div class="atom-display" id="atomDisplay"></div>
+        </div>
+
+        <!-- Bagian 5: Hasil Reaksi -->
+        <div class="reaction-result" id="reactionResult">
+	<script>
+let selectedCompounds = {1: null, 2: null};
+
+// ================= DRAG =================
+function dragStart(event) {
+    event.dataTransfer.setData("text", event.target.dataset.id);
+}
+
+function allowDrop(event) {
+    event.preventDefault();
+    event.currentTarget.classList.add("drag-over");
+}
+
+function drop(event) {
+    event.preventDefault();
+    const zone = event.currentTarget;
+    zone.classList.remove("drag-over");
+
+    const compoundId = event.dataTransfer.getData("text");
+    const original = document.querySelector(`[data-id="${compoundId}"]`);
+    if (!original) return;
+
+    const slot = zone.dataset.slot;
+
+    zone.innerHTML = `<button class="remove-btn" onclick="removeFromZone(${slot}, event)">✕</button>`;
+    const clone = original.cloneNode(true);
+    clone.removeAttribute("draggable");
+    clone.onclick = () => showStructure(compoundId);
+    zone.appendChild(clone);
+
+    zone.classList.add("filled");
+    selectedCompounds[slot] = compoundId;
+
+    checkCombine();
+}
+
+// ================= REMOVE =================
+function removeFromZone(slot, event) {
+    event.stopPropagation();
+    const zone = document.querySelector(`[data-slot="${slot}"]`);
+    zone.innerHTML = `<button class="remove-btn" onclick="removeFromZone(${slot}, event)">✕</button>`;
+    zone.classList.remove("filled");
+    selectedCompounds[slot] = null;
+    checkCombine();
+}
+
+// ================= CHECK BUTTON =================
+function checkCombine() {
+    const btn = document.getElementById("btnGabung");
+    if (selectedCompounds[1] && selectedCompounds[2]) {
+        btn.disabled = false;
+    } else {
+        btn.disabled = true;
+    }
+}
+
+// ================= STRUKTUR ATOM =================
+function showStructure(compoundId) {
+    const display = document.getElementById("atomDisplay");
+    const title = document.getElementById("animTitle");
+    display.innerHTML = "";
+
+    const structures = {
+        H2O: ["H", "O", "H"],
+        NaCl: ["Na", "Cl"],
+        CO2: ["O", "C", "O"],
+        H2: ["H", "H"],
+        O2: ["O", "O"],
+        NaOH: ["Na", "O", "H"],
+        HCl: ["H", "Cl"],
+        NH3: ["N", "H", "H", "H"]
+    };
+
+    if (!structures[compoundId]) return;
+
+    title.innerText = "Struktur: " + compoundId;
+
+    structures[compoundId].forEach((atom, index) => {
+        const atomDiv = document.createElement("div");
+        atomDiv.className = "atom atom-" + atom;
+        atomDiv.innerText = atom;
+        display.appendChild(atomDiv);
+
+        if (index < structures[compoundId].length - 1) {
+            const bond = document.createElement("div");
+            bond.className = "bond";
+            display.appendChild(bond);
+        }
+    });
+}
+
+// ================= REAKSI =================
+function combineCompounds() {
+    const c1 = selectedCompounds[1];
+    const c2 = selectedCompounds[2];
+    const resultBox = document.getElementById("reactionResult");
+
+    let reactionHTML = "";
+
+    if ((c1 === "H2" && c2 === "O2") || (c1 === "O2" && c2 === "H2")) {
+        reactionHTML = `
+            <div class="reaction-title">Reaksi Pembentukan Air</div>
+            <div class="reaction-equation">
+                2H₂ + O₂ <span class="reaction-arrow">→</span> 2H₂O
+            </div>
+            <p>Reaksi ini menghasilkan air (H₂O).</p>
+        `;
+    }
+    else if ((c1 === "NaOH" && c2 === "HCl") || (c1 === "HCl" && c2 === "NaOH")) {
+        reactionHTML = `
+            <div class="reaction-title">Reaksi Netralisasi</div>
+            <div class="reaction-equation">
+                NaOH + HCl <span class="reaction-arrow">→</span> NaCl + H₂O
+            </div>
+            <p>Reaksi asam dan basa menghasilkan garam dan air.</p>
+        `;
+    }
+    else if ((c1 === "NH3" && c2 === "HCl") || (c1 === "HCl" && c2 === "NH3")) {
+        reactionHTML = `
+            <div class="reaction-title">Reaksi Amonia & Asam</div>
+            <div class="reaction-equation">
+                NH₃ + HCl <span class="reaction-arrow">→</span> NH₄Cl
+            </div>
+            <p>Menghasilkan amonium klorida.</p>
+        `;
+    }
+    else {
+        reactionHTML = `
+            <div class="reaction-title">Tidak Ada Reaksi</div>
+            <p>Kombinasi ini belum tersedia di simulasi.</p>
+        `;
+    }
+
+    resultBox.innerHTML = reactionHTML;
+    resultBox.style.display = "block";
+}
+
+// ================= RESET =================
+function resetAll() {
+    removeFromZone(1, {stopPropagation:()=>{}});
+    removeFromZone(2, {stopPropagation:()=>{}});
+    document.getElementById("reactionResult").style.display = "none";
+    document.getElementById("atomDisplay").innerHTML = "";
+    document.getElementById("animTitle").innerText = 
+        "Klik senyawa untuk lihat animasi struktur atom!";
+}
+</script>
+<body>
+</html>

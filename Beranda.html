@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Beranda - Senyawa Kimia</title>
+
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+body{
+    font-family: 'Segoe UI', sans-serif;
+    background: linear-gradient(135deg, #0f3460, #16213e, #1a1a2e);
+    color:white;
+    min-height:100vh;
+}
+
+/* HEADER */
+header{
+    background: linear-gradient(90deg, #e94560, #6a0dad);
+    padding:30px;
+    text-align:center;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+}
+
+header h1{
+    font-size:2.2rem;
+}
+
+/* NAVBAR */
+nav{
+    background: linear-gradient(90deg, #1B263B, #0F3460);
+    padding:15px;
+    text-align:center;
+}
+
+nav a{
+    color:#FFD700;
+    margin:0 18px;
+    text-decoration:none;
+    font-weight:bold;
+    position:relative;
+    transition:0.3s;
+}
+
+/* Hover effect */
+nav a::after{
+    content:"";
+    position:absolute;
+    width:0%;
+    height:3px;
+    background:#FFD700;
+    left:0;
+    bottom:-5px;
+    transition:0.3s;
+}
+
+nav a:hover{
+    color:white;
+}
+
+nav a:hover::after{
+    width:100%;
+}
+
+/* MAIN */
+main{
+    padding:60px 20px;
+    text-align:center;
+}
+
+main h2{
+    font-size:2rem;
+    margin-bottom:20px;
+    color:#FFD700;
+}
+
+main p{
+    max-width:700px;
+    margin:auto;
+    font-size:1.1rem;
+    line-height:1.7;
+    color:#ddd;
+}
+
+/* CARD STYLE */
+main{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+}
+
+main p{
+    background:rgba(255,255,255,0.05);
+    padding:25px;
+    border-radius:15px;
+    border:1px solid rgba(255,255,255,0.1);
+}
+</style>
+</head>
+
+<body>
+
+<header>
+    <h1>🧪 Senyawa Kimia</h1>
+</header>
+
+<nav>
+    <a href="Beranda.html">Beranda</a>
+    <a href="Jenis.html">Jenis</a>
+    <a href="sifat.html">Sifat</a>
+    <a href="njajalrek.html">Contoh</a>  
+    <a href="quiz.html">Quiz</a>
+</nav>
+
+<main>
+    <h2>Selamat Datang 👋</h2>
+    <p>
+        Pada web pembelajaran Kimia! Di sini kamu akan mempelajari tentang 
+        <strong>senyawa kimia</strong>, bagaimana unsur-unsur bergabung membentuk 
+        zat baru, serta bagaimana senyawa berperan penting dalam kehidupan sehari-hari.
+    </p>
+</main>
+
+</body>
+</html>
